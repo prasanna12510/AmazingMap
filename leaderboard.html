@@ -1,0 +1,409 @@
+<!DOCTYPE Html>
+<head>
+	<title>Amazing Race Leaderboard</title>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+	
+	<link rel="stylesheet" type="text/css" href="leaderboard.css">
+	<link rel="stylesheet" type="text/css" href="map.css">
+	
+	<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+    </script>
+</head>
+<!--Direction API: AIzaSyC2nJgijsU_uVPBMIPx74nIvNT9RtQbT6I  -->
+<!--MAP API: AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ -->	
+<body onload="initMap();">
+<h1><span class="yellow">Amazing Race</span></h1>
+
+<div id="floating-panel">
+<input type="button" onclick="deleteMarkers();" value="Delete All Pitstops">
+<input type="button" onclick="moveMarkerAlongPath()" value="Start Event">
+
+<!-- <input type="button" onclick="initPano();" value="ChangeView">
+ -->
+</div>
+
+<div id="map"></div>
+
+<table id="myTable" class="container">
+	<thead>
+		<tr>
+			<th onclick="sortTable(0)"> <h1> <span class="center">Rank</span></h1></th>
+			<th onclick="sortTable(1)"> <h1>Team</h1> </th>
+			<th onclick="sortTable(2)"> <h1>Pitstops Cleared</h1></th>
+			<th onclick="sortTable(3)"><h1>Pitstops Remaining</h1></th>
+		</tr>
+    </thead>
+	
+	<tbody>
+		<tr>
+			<td> 1 </td>
+			<td> Team 001 </td>
+			<td> 6 </td>
+			<td> 5 </td>
+		</tr>
+		<tr>
+			<td>2</td>
+			<td>Team 002</td>
+			<td> 7</td>
+			<td> 2</td>
+		</tr>
+			<tr>
+			<td>3</td>
+			<td>Team 003</td>
+			<td> 4</td>
+			<td> 1</td>
+		</tr>
+	<tr>
+			<td>4</td>
+			<td>Team 004</td>
+			<td>2</td>
+			<td>8</td>
+		</tr>
+    <tr>
+			<td>5</td>
+			<td>Team 005</td>
+			<td>4</td>
+			<td>6</td>
+		</tr>
+    <tr>
+			<td>6</td>
+			<td>Team 006</td>
+			<td>3</td>
+			<td>1</td>
+		</tr>
+	</tbody>
+</table>
+
+
+
+<script type="text/javascript">
+
+var markersArray = [];
+var pathArray = [];
+var map;
+var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+var pitstops = '123456789'
+var pitstopIndex=0;
+var labelIndex = 0;
+var poly;
+var image;
+var movingImage;
+
+	function initMap() {
+	
+	var singapore = {lat: 1.290270, lng: 103.851959};
+    
+  
+	map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 10,
+    center: singapore,
+	mapTypeId: google.maps.MapTypeId.ROADMAP, //
+	gestureHandling: 'cooperative',
+	styles: [
+      {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
+      {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
+      {elementType: 'labels.text.fill', stylers: [{color: '#746855'}]},
+      {
+        featureType: 'administrative.locality',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#d59563'}]
+      },
+      {
+        featureType: 'poi',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#d59563'}]
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'geometry',
+        stylers: [{color: '#263c3f'}]
+      },
+      {
+        featureType: 'poi.park',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#6b9a76'}]
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry',
+        stylers: [{color: '#38414e'}]
+      },
+      {
+        featureType: 'road',
+        elementType: 'geometry.stroke',
+        stylers: [{color: '#212a37'}]
+      },
+      {
+        featureType: 'road',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#9ca5b3'}]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry',
+        stylers: [{color: '#746855'}]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'geometry.stroke',
+        stylers: [{color: '#1f2835'}]
+      },
+      {
+        featureType: 'road.highway',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#f3d19c'}]
+      },
+      {
+        featureType: 'transit',
+        elementType: 'geometry',
+        stylers: [{color: '#2f3948'}]
+      },
+      {
+        featureType: 'transit.station',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#d59563'}]
+      },
+      {
+        featureType: 'water',
+        elementType: 'geometry',
+        stylers: [{color: '#17263c'}]
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.fill',
+        stylers: [{color: '#515c6d'}]
+      },
+      {
+        featureType: 'water',
+        elementType: 'labels.text.stroke',
+        stylers: [{color: '#17263c'}]
+      }
+    ]
+	
+  });//map declaration ends
+  
+  //set the mapTilt to 45
+  map.setTilt(45);
+  
+//set Marker on Load of Map  
+ var marker = new google.maps.Marker({
+    position: singapore,
+    map: map,
+	draggable: false,
+	label:'S'
+	
+  });
+  
+ 
+  //set the polyline
+  poly = new google.maps.Polyline({
+	strokeColor: '#00ffd8',
+	strokeOpacity:1.0,
+	strokeWeight:3
+  
+  });
+  poly.setMap(map);
+  
+  
+  //Add a listener for the click event and call to function addLatLng
+  map.addListener('click',addLatLng);
+
+  
+ }//init function ends
+ 
+ 
+
+ 
+ 
+ 
+ 
+//Panorama View of the Map 
+function initPano() {
+        // Note: constructed panorama objects have visible: true
+        // set by default.
+        var panorama = new google.maps.StreetViewPanorama(
+            document.getElementById('map'), {
+              position: {lat: 1.290270, lng: 103.851959},
+              addressControlOptions: {
+                position: google.maps.ControlPosition.BOTTOM_CENTER
+              },
+              linksControl: false,
+              panControl: false,
+              enableCloseButton: false
+        });
+      }
+
+
+ 
+ 
+function addLatLng(event){
+
+	var path = poly.getPath();
+	
+	path.push(event.latLng);
+	
+	//push to pathArray
+	pathArray.push(event.latLng);
+
+    image = {
+        url: 'Images/vlc.png', // setting custom image for marker
+        scaledSize : new google.maps.Size(22, 32)
+    };
+ 
+
+	var marker = new google.maps.Marker({
+	
+	position:event.latLng,
+	title:"#" + path.getLength(),
+	animation: google.maps.Animation.DROP,
+	label: pitstops[pitstopIndex++ % pitstops.length],
+	icon:image,
+	draggable: false,
+	});
+	
+	markersArray.push(marker);
+	
+	//Cluster to define number of Marker in specific Region
+  var markerCluster = new MarkerClusterer(map, markersArray,
+            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
+
+	
+
+
+}//addLatLng function ends
+
+ 
+function moveMarkerAlongPath(){
+
+//create symbol on line Path
+//icon on the line 
+ var lineSymbol = {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          strokeColor: '#00ced1' //#393
+        };
+
+ movingImage = {
+        url: 'Images/bluecircle.png', // setting custom image for marker
+       
+    };
+ 
+		
+		
+//To move the Marker Along the Path or complex Polyline
+  var line = new google.maps.Polyline({
+  
+  path: pathArray,
+  icons:[{
+	icon:lineSymbol,
+	offset:'100%'
+  }],
+  
+  map:map
+  });	
+  
+  animateCircle(line);
+
+
+}
+ 
+ 
+function animateCircle(line){
+
+		var count = 0;
+          window.setInterval(function() {
+            count = (count + 1) % 200;
+
+            var icons = line.get('icons');
+            icons[0].offset = (count / 2) + '%';
+            line.set('icons', icons);
+        }, 20);
+
+} 
+ 
+
+// Sets the map on all markers in the array.
+      function setMapOnAll(map) {
+        for (var i = 0; i < markersArray.length; i++) {
+          markersArray[i].setMap(map);
+        }
+		markersArray.length = 0;
+      }
+
+
+// Deletes all markers in the array by removing references to them.
+      function deleteMarkers() {
+        setMapOnAll(null);
+		poly.setMap(null);
+        markersArray = [];
+      }
+
+
+	  
+function sortTable(n) {
+  var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+  table = document.getElementById("myTable");
+  switching = true;
+  //Set the sorting direction to ascending:
+  dir = "asc"; 
+  /*Make a loop that will continue until
+  no switching has been done:*/
+  while (switching) {
+    //start by saying: no switching is done:
+    switching = false;
+    rows = table.getElementsByTagName("TR");
+    /*Loop through all table rows (except the
+    first, which contains table headers):*/
+    for (i = 1; i < (rows.length - 1); i++) {
+      //start by saying there should be no switching:
+      shouldSwitch = false;
+      /*Get the two elements you want to compare,
+      one from current row and one from the next:*/
+      x = rows[i].getElementsByTagName("TD")[n];
+      y = rows[i + 1].getElementsByTagName("TD")[n];
+      /*check if the two rows should switch place,
+      based on the direction, asc or desc:*/
+      if (dir == "asc") {
+        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch= true;
+          break;
+        }//if
+      } else if (dir == "desc") {
+        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+          //if so, mark as a switch and break the loop:
+          shouldSwitch= true;
+          break;
+        }//if
+      }//elseif
+    }//for
+    if (shouldSwitch) {
+      /*If a switch has been marked, make the switch
+      and mark that a switch has been done:*/
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+      //Each time a switch is done, increase this count by 1:
+      switchcount ++;      
+    } else {
+      /*If no switching has been done AND the direction is "asc",
+      set the direction to "desc" and run the while loop again.*/
+      if (switchcount == 0 && dir == "asc") {
+        dir = "desc";
+        switching = true;
+      }//if
+    }//else
+  }//switch
+
+}//function sortTable ends
+
+
+
+
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ&callback=initMap">
+</script>
+
+</body>
+
+</html>
