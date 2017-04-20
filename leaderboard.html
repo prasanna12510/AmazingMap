@@ -7,8 +7,22 @@
 	<link rel="stylesheet" type="text/css" href="leaderboard.css">
 	<link rel="stylesheet" type="text/css" href="map.css">
 	
-	<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js">
+	<script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+	<!-- jquery library and jquery.easing plugin are needed -->
+	<script src="jquery-3.2.1.min.js"></script>
+	<script src="jquery.easing.1.3.js"></script>
+
+	<!-- we provide marker for google maps, so here it comes  -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ">
     </script>
+	<!-- <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script> -->
+
+	<!-- we use markerAnimate to actually animate marker -->
+	<script src="markerAnimate.js"></script>
+
+	<!-- SlidingMarker hides details from you - your markers are just animated automagically -->
+	<script src="SlidingMarker.min.js"></script>
+	
 </head>
 <!--Direction API: AIzaSyC2nJgijsU_uVPBMIPx74nIvNT9RtQbT6I  -->
 <!--MAP API: AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ -->	
@@ -18,6 +32,10 @@
 <div id="floating-panel">
 <input type="button" onclick="deleteMarkers();" value="Delete All Pitstops">
 <input type="button" onclick="moveMarkerAlongPath()" value="Start Event">
+<p><input type="text" id="No_of_teams" placeholder="Enter no of teams"></p>
+<p id='team 1'>team: 0 at pitstop: 0</p>
+<p id='team 2'>team: 0 at pitstop: 0</p>
+<p id='team 3'>team: 0 at pitstop: 0</p>
 
 <!-- <input type="button" onclick="initPano();" value="ChangeView">
  -->
@@ -273,40 +291,142 @@ function addLatLng(event){
 
 }//addLatLng function ends
 
- 
+var teamMarkers = [];
+
+
+
 function moveMarkerAlongPath(){
 
 //create symbol on line Path
 //icon on the line 
+
+function create(htmlStr) {
+    var frag = document.createDocumentFragment(),
+        temp = document.createElement('div');
+    temp.innerHTML = htmlStr;
+    while (temp.firstChild) {
+        frag.appendChild(temp.firstChild);
+      }
+        return frag;
+    }
+
  var lineSymbol = {
           path: google.maps.SymbolPath.CIRCLE,
           scale: 8,
           strokeColor: '#00ced1' //#393
         };
+		//document.getElementById('demo').innerHTML = pathArray[0];
 
- movingImage = {
-        url: 'Images/bluecircle.png', // setting custom image for marker
-       
-    };
+movingImage = {
+       url: 'Images/bluecircle.png', // setting custom image for marker
+		scaledSize : new google.maps.Size(22, 32)
+   };		
+		
+		var teamCount = document.getElementById('No_of_teams').value;
+		if(teamCount == "")
+			teamCount = 1;
+			
+		for(i=1;i<=teamCount;i++)
+		{
+			var duration = Math.floor((Math.random() * 5000) + 1000);
+			//var label = {text: "team "+i, color:"white"};
+			
+			var teamMarker = new SlidingMarker({
+		
+			position: pathArray[0],
+			//title:"#" + path.getLength(),
+			animation: google.maps.Animation.DROP,
+			label: 'team '+i,
+			icon: movingImage,
+			draggable: true,
+			map: map,
+			duration: duration
+			});
+			teamMarkers.push(teamMarker);
+			//var fragment = create('<p id=label></p>');
+			//document.getElementById('floating-panel').appendChild(fragment);
+		}
+		
+<!-- teamMarker = new SlidingMarker({ -->
+	
+	<!-- position: pathArray[0], -->
+	<!-- //title:"#" + path.getLength(), -->
+	<!-- animation: google.maps.Animation.DROP, -->
+	<!-- label: 'team 1', -->
+	<!-- icon: movingImage, -->
+	<!-- draggable: true, -->
+	<!-- map: map, -->
+	<!-- duration: 3000 -->
+<!-- }); -->
+
+//checkPosition();
+//setInterval(checkPosition, 100);
+var currentPitStop=0;
+move = function(marker, latlngs, index, wait, newDestination) {
+      marker.setPosition(latlngs[index]);
+	  currentPitStop = index+1;
+	  
+      if(index != latlngs.length) {
+      // call the next "frame" of the animation
+      setTimeout(function() {
+	  currentPitStop = index+1;
+	  document.getElementById(marker.label).innerHTML = marker.label+' at pitstop: ' + currentPitStop;
+      move(marker, latlngs, index+1, wait, newDestination); 
+      }, wait);
+      }
+       else {
+          //assign new route
+          marker.position = marker.destination;
+          marker.destination = newDestination;
+        }
+      }
+      // begin animation, send back to origin after completion
+	  for(i=0;i<teamCount;i++)
+	  {
+		move(teamMarkers[i], pathArray, 0, teamMarkers[i].duration, teamMarkers[i].position);
+	  }
+	  
+      
+
+ 
  
 		
 		
 //To move the Marker Along the Path or complex Polyline
-  var line = new google.maps.Polyline({
+ // var line = new google.maps.Polyline({
   
-  path: pathArray,
-  icons:[{
-	icon:lineSymbol,
-	offset:'100%'
-  }],
+//  path: pathArray,
+//  icons:[{
+	//icon:lineSymbol,
+//	offset:'100%'
+//  }],
   
-  map:map
-  });	
+//  map:map
+ // });	
   
-  animateCircle(line);
+  //animateCircle(line);
 
 
 }
+ 
+ 
+ //var currentPitStop = 1;
+ function checkPosition() {
+            
+                //if (teamList[0].getLatLng().equals(markerList[1])) {
+                //    teamList[0].addStation(1, 2000);
+                //    return;
+                //} 
+                for (i = currentPitStop; i <= pathArray.length; i++) {
+                    if (teamMarker.position.equals(pathArray[i])){
+                        currentPitStop++;
+                        document.getElementById('demo').innerHTML = 'At pitStop: ' + currentPitStop;
+                        //clearInterval(intvl);
+                    }
+                }
+            
+        }
+
  
  
 function animateCircle(line){
@@ -401,8 +521,7 @@ function sortTable(n) {
 
 
 </script>
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ&callback=initMap">
-</script>
+
 
 </body>
 
