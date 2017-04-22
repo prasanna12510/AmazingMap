@@ -22,7 +22,7 @@
 
 	<!-- SlidingMarker hides details from you - your markers are just animated automagically -->
 	<script src="SlidingMarker.min.js"></script>
-	
+
 </head>
 <!--Direction API: AIzaSyC2nJgijsU_uVPBMIPx74nIvNT9RtQbT6I  -->
 <!--MAP API: AIzaSyBU9Apji828jugAavQUu7ZSaPOqWxau-nQ -->	
@@ -381,31 +381,27 @@ move = function(marker, latlngs, index, wait, newDestination) {
 						table = document.getElementById("myTable");
 						rows = table.getElementsByTagName("TR");
 						
-						//i=1;
-						
 						
 							var markerStr = marker.label.text.charAt(marker.label.text.length - 1)
 							var markerIndex = parseInt(markerStr);
-								col1 = rows[i].getElementsByTagName("TD")[1];
-								col2 = rows[i].getElementsByTagName("TD")[2];
-								col3 = rows[i].getElementsByTagName("TD")[3];
-								//col1.innerHTML = " "+marker.label.text
+								col1 = rows[markerIndex].getElementsByTagName("TD")[1];
+								col2 = rows[markerIndex].getElementsByTagName("TD")[2];
+								col3 = rows[markerIndex].getElementsByTagName("TD")[3];
+								col1.innerHTML = " "+marker.label.text
 								col2.innerHTML = " "+currentPitStop;
 								col3.innerHTML = " "+(pathArray.length - currentPitStop)
-								sortTable(2);	
-							
-						//	i= i+1;
-						
-						//}
-						
-						
-
-						
+								//sortTable(2);
+								newsortTable("myTable", 2);
+								newsortTable("myTable", 1);
+								
+								
+								
 	  
 	  
       move(marker, latlngs, index+1, wait, newDestination); 
-	  
+//	  newsortTable('myTable', 0);
       }, wait);
+	 // sortTable(0);
       }
        else {
           //assign new route
@@ -509,10 +505,10 @@ function addRow(rowcount) {
         var row = table.insertRow(rowCount);
 
         var cell1 = row.insertCell(0);
-        cell1.innerHTML = " ";
+        cell1.innerHTML = " "+i;
 
         var cell2 = row.insertCell(1);
-        cell2.innerHTML = "team " + i;
+        cell2.innerHTML = " ";
 
         var cell3 = row.insertCell(2);
         cell3.innerHTML = " ";
@@ -520,12 +516,27 @@ function addRow(rowcount) {
 		var cell4 = row.insertCell(3);
         cell3.innerHTML = " ";
 		
-		sortTable(1);
+	//	sortTable(0);
 		
 
 	}
 
 }	  
+
+
+function newsortTable(table_id, sortColumn){
+    var tableData = document.getElementById(table_id).getElementsByTagName('tbody').item(0);
+    var rowData = tableData.getElementsByTagName('tr');            
+    for(var i = 0; i < rowData.length - 1; i++){
+        for(var j = 0; j < rowData.length - (i + 1); j++){
+            if(Number(rowData.item(j).getElementsByTagName('td').item(sortColumn).innerHTML.replace(/[^0-9\.]+/g, "")) > Number(rowData.item(j+1).getElementsByTagName('td').item(sortColumn).innerHTML.replace(/[^0-9\.]+/g, ""))){
+                tableData.insertBefore(rowData.item(j+1),rowData.item(j));
+            }
+        }
+    }
+}
+
+
 	  
 	  
 function sortTable(n) {
