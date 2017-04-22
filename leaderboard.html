@@ -54,7 +54,7 @@
     </thead>
 	
 	<tbody>
-		<tr>
+		<!-- <tr>
 			<td> 1 </td>
 			<td> Team 001 </td>
 			<td> 6 </td>
@@ -89,7 +89,7 @@
 			<td>Team 006</td>
 			<td>3</td>
 			<td>1</td>
-		</tr>
+		</tr> -->
 	</tbody>
 </table>
 
@@ -319,24 +319,27 @@ function create(htmlStr) {
 
 movingImage = {
        url: 'Images/bluecircle.png', // setting custom image for marker
-		scaledSize : new google.maps.Size(22, 32)
+		<!-- scaledSize : new google.maps.Size(22, 32) -->
    };		
 		
 		var teamCount = document.getElementById('No_of_teams').value;
+		addRow(teamCount);
+		
 		if(teamCount == "")
 			teamCount = 1;
-			
+		
+		
 		for(i=1;i<=teamCount;i++)
 		{
-			var duration = Math.floor((Math.random() * 5000) + 1000);
-			//var label = {text: "team "+i, color:"white"};
+			var duration = Math.floor((Math.random() * 5000) + 3000);
+			var label = {text: "team "+i,color:"white"};
 			
 			var teamMarker = new SlidingMarker({
 		
 			position: pathArray[0],
 			//title:"#" + path.getLength(),
 			animation: google.maps.Animation.DROP,
-			label: 'team '+i,
+			label: label,
 			icon: movingImage,
 			draggable: true,
 			map: map,
@@ -361,7 +364,10 @@ movingImage = {
 
 //checkPosition();
 //setInterval(checkPosition, 100);
+
 var currentPitStop=0;
+var table,rows,x,col1,col2;
+var i=1;
 move = function(marker, latlngs, index, wait, newDestination) {
       marker.setPosition(latlngs[index]);
 	  currentPitStop = index+1;
@@ -370,8 +376,35 @@ move = function(marker, latlngs, index, wait, newDestination) {
       // call the next "frame" of the animation
       setTimeout(function() {
 	  currentPitStop = index+1;
-	  document.getElementById(marker.label).innerHTML = marker.label+' at pitstop: ' + currentPitStop;
+	  //document.getElementById(marker.label).innerHTML = marker.label+' at pitstop: ' + currentPitStop;
+						
+						table = document.getElementById("myTable");
+						rows = table.getElementsByTagName("TR");
+						
+						//i=1;
+						
+						
+							var markerStr = marker.label.text.charAt(marker.label.text.length - 1)
+							var markerIndex = parseInt(markerStr);
+								col1 = rows[i].getElementsByTagName("TD")[1];
+								col2 = rows[i].getElementsByTagName("TD")[2];
+								col3 = rows[i].getElementsByTagName("TD")[3];
+								//col1.innerHTML = " "+marker.label.text
+								col2.innerHTML = " "+currentPitStop;
+								col3.innerHTML = " "+(pathArray.length - currentPitStop)
+								sortTable(2);	
+							
+						//	i= i+1;
+						
+						//}
+						
+						
+
+						
+	  
+	  
       move(marker, latlngs, index+1, wait, newDestination); 
+	  
       }, wait);
       }
        else {
@@ -410,6 +443,8 @@ move = function(marker, latlngs, index, wait, newDestination) {
 }
  
  
+ 
+ 
  //var currentPitStop = 1;
  function checkPosition() {
             
@@ -417,11 +452,14 @@ move = function(marker, latlngs, index, wait, newDestination) {
                 //    teamList[0].addStation(1, 2000);
                 //    return;
                 //} 
+				
+				
                 for (i = currentPitStop; i <= pathArray.length; i++) {
                     if (teamMarker.position.equals(pathArray[i])){
                         currentPitStop++;
                         document.getElementById('demo').innerHTML = 'At pitStop: ' + currentPitStop;
                         //clearInterval(intvl);
+					    
                     }
                 }
             
@@ -460,6 +498,35 @@ function animateCircle(line){
       }
 
 
+	  
+function addRow(rowcount) {
+
+        var table = document.getElementById("myTable");
+
+        var rowCount = table.rows.length;
+		
+		for(i=1;i<=rowcount;i++){
+        var row = table.insertRow(rowCount);
+
+        var cell1 = row.insertCell(0);
+        cell1.innerHTML = " ";
+
+        var cell2 = row.insertCell(1);
+        cell2.innerHTML = "team " + i;
+
+        var cell3 = row.insertCell(2);
+        cell3.innerHTML = " ";
+		
+		var cell4 = row.insertCell(3);
+        cell3.innerHTML = " ";
+		
+		sortTable(1);
+		
+
+	}
+
+}	  
+	  
 	  
 function sortTable(n) {
   var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
